@@ -18,11 +18,17 @@ API REST bancaria desarrollada con Spring Boot, JPA/Hibernate, PostgreSQL y Dock
 
 ## 📁 Estructura
 com.banking.api
+
 ├── controller
+
 ├── service
+
 ├── repository
+
 ├── entity
+
 └── BankingApiApplication.java
+
 
 
 ## 🐳 Cómo correrlo
