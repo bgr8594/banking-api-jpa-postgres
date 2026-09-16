@@ -30,6 +30,10 @@ public class BankService {
         this.transactionRepository = transactionRepository;
     }
 
+    public List<Account> findAll() {
+        return accountRepository.findAll();
+    }
+
     public List<Customer> getAllCustomers() {
         return customerRepository.findAll();
     }
