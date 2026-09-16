@@ -23,4 +23,12 @@ This project is used as a reference implementation for banking modernization and
 docker-compose up --build
 
 API: http://localhost:8080
-Swagger: http://localhost:8080/swagger-ui.htmlEndpointsPOST /account - create accountGET /account/{number} - get accountPUT /account/deposit/{number}/{amount}PUT /account/withdraw/{number}/{amount}Why this project?Designed to demonstrate skills required for legacy banking systems: transaction integrity, Postgres performance, and Dockerized deployment.
+Swagger: http://localhost:8080/swagger-ui.html
+Endpoints
+POST /account - create account
+GET /account/{number} - get account
+PUT /account/deposit/{number}/{amount}
+PUT /account/withdraw/{number}/{amount}
+
+Why this project?
+Designed to demonstrate skills required for legacy banking systems: transaction integrity, Postgres performance, and Dockerized deployment.
