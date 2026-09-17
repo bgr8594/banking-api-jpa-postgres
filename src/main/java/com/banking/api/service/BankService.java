@@ -1,95 +1,60 @@
 package com.banking.api.service;
 
+import com.banking.api.dto.AccountResponseDto;
 import com.banking.api.entity.Account;
-import com.banking.api.entity.Customer;
-import com.banking.api.entity.Transaction;
+import com.banking.api.mapper.AccountMapper;
 import com.banking.api.repository.AccountRepository;
-import com.banking.api.repository.CustomerRepository;
-import com.banking.api.repository.TransactionRepository;
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 @Service
+@AllArgsConstructor
 public class BankService {
-
-    private final CustomerRepository customerRepository;
     private final AccountRepository accountRepository;
-    private final TransactionRepository transactionRepository;
+    private final AccountMapper accountMapper;
 
-    public BankService(CustomerRepository customerRepository, 
-                       AccountRepository accountRepository, 
-                       TransactionRepository transactionRepository) {
-        this.customerRepository = customerRepository;
-        this.accountRepository = accountRepository;
-        this.transactionRepository = transactionRepository;
-    }
-
-    public List<Account> findAll() {
-        return accountRepository.findAll();
-    }
-
-    public List<Customer> getAllCustomers() {
-        return customerRepository.findAll();
-    }
-
-    public Customer getCustomerById(Long id) {
-        return customerRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Cliente no encontrado"));
-    }
-
-    public Account getAccountByNumber(String accountNumber) {
-        return accountRepository.findByAccountNumber(accountNumber)
-                .orElseThrow(() -> new RuntimeException("Cuenta no encontrada"));
+    @Transactional(readOnly = true)
+    public List<AccountResponseDto> findAll() {
+        return accountRepository.findAllWithCustomer()
+                .stream().map(accountMapper::toDto)
+                .toList();
     }
 
     @Transactional
-    public Customer createCustomer(String fullName, String email, String nationalId) {
-        Customer customer = Customer.builder()
-                .fullName(fullName)
-                .email(email)
-                .nationalId(nationalId)
-                .build();
-        return customerRepository.save(customer);
-    }
-
-    @Transactional
-    public Account createAccount(String accountNumber, Account.AccountType type, Long customerId) {
-        Customer customer = getCustomerById(customerId);
-        Account account = Account.builder()
-                .accountNumber(accountNumber)
-                .accountType(type)
-                .balance(BigDecimal.ZERO)
-                .customer(customer)
-                .build();
-        return accountRepository.save(account);
-    }
-
-    @Transactional
-    public Account deposit(String accountNumber, BigDecimal amount) {
-        Account account = getAccountByNumber(accountNumber);
+    public Account deposit(String id, BigDecimal amount) {
+        if (amount.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("Monto debe ser mayor a 0");
+        }
+        Account account = accountRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Cuenta no encontrada: " + id));
         account.setBalance(account.getBalance().add(amount));
-
-        Transaction tx = Transaction.builder()
-                .amount(amount)
-                .type(Transaction.TransactionType.DEPOSIT)
-                .timestamp(LocalDateTime.now())
-                .account(account)
-                .build();
-
-        account.getTransactions().add(tx);
-        transactionRepository.save(tx);
         return accountRepository.save(account);
     }
 
-    public Map<Customer, List<Account>> getAccountsForCustomers(List<Customer> customers) {
-        List<Account> accounts = accountRepository.findByCustomerIn(customers);
-        return accounts.stream()
-                .collect(Collectors.groupingBy(Account::getCustomer));
+    @Transactional
+    public Account withdraw(String id, BigDecimal amount) {
+        if (amount.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("Monto debe ser mayor a 0");
+        }
+        Account account = accountRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Cuenta no encontrada: " + id));
+
+        if (account.getBalance().compareTo(amount) < 0) {
+            throw new RuntimeException("Fondos insuficientes. Saldo: " + account.getBalance());
+        }
+        account.setBalance(account.getBalance().subtract(amount));
+        return accountRepository.save(account);
+    }
+
+    @Transactional
+    public Account create(Account account) {
+        if (account.getBalance() == null || account.getBalance().compareTo(new BigDecimal("100")) < 0) {
+            throw new IllegalArgumentException("Saldo inicial mínimo $100 MXN");
+        }
+        // Aquí se generaría CLABE, por ahora guardamos directo
+        return accountRepository.save(account);
     }
 }

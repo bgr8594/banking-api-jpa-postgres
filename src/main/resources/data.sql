@@ -5,14 +5,10 @@ INSERT INTO customers (id, full_name, email, national_id) VALUES
 (3, 'Miguel Hidalgo', 'hidalgo@ejemplo.com', '33333333')
 ON CONFLICT (id) DO NOTHING;
 
-SELECT setval('customers_id_seq', (SELECT MAX(id) FROM customers), true);
-
 -- Insertar Cuentas
-INSERT INTO accounts (id, account_number, account_type, balance, customer_id) VALUES
-(1, 'ACC-001', 'SAVINGS', 15000.00, 1),
-(2, 'ACC-002', 'CHECKING', 5400.50, 1),
-(3, 'ACC-003', 'SAVINGS', 23000.00, 2),
-(4, 'ACC-004', 'CHECKING', 1200.00, 3)
-ON CONFLICT (id) DO NOTHING;
-
-SELECT setval('accounts_id_seq', (SELECT MAX(id) FROM accounts), true);
+-- 2. Insertar cuentas asignando customer_id
+INSERT INTO accounts (account_number, account_type, balance, customer_id)
+VALUES
+  ('12345678901', 'SAVINGS', 1500.00, 1),
+  ('12345678902', 'CHECKING', 5000.00, 2),
+  ('12345678903', 'SAVINGS', 250.00, 3);

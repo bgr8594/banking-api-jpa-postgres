@@ -16,11 +16,8 @@ import java.util.List;
 public class Account {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    @Column(nullable = false, unique = true, length = 20)
-    private String accountNumber;
+    @Column(name="account_number", nullable = false, unique = true, length = 20)
+    private String accountNumber; // Este es tu ID, ej: "12345678901"
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
