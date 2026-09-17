@@ -32,7 +32,7 @@ public class AccountController {
     @ApiResponse(responseCode = "404", description = "Cuenta no encontrada")
     @ApiResponse(responseCode = "400", description = "Monto inválido")
     @PostMapping("/{id}/deposit")
-    public ResponseEntity<Account> deposit(@PathVariable String id, @RequestParam BigDecimal amount) {
+    public ResponseEntity<AccountResponseDto> deposit(@PathVariable String id, @RequestParam BigDecimal amount) {
         return ResponseEntity.ok(bankService.deposit(id, amount));
     }
 
@@ -41,7 +41,7 @@ public class AccountController {
     @ApiResponse(responseCode = "200", description = "Retiro exitoso")
     @ApiResponse(responseCode = "400", description = "Fondos insuficientes")
     @PostMapping("/{id}/withdraw")
-    public ResponseEntity<Account> withdraw(@PathVariable String id, @RequestParam BigDecimal amount) {
+    public ResponseEntity<AccountResponseDto> withdraw(@PathVariable String id, @RequestParam BigDecimal amount) {
         return ResponseEntity.ok(bankService.withdraw(id, amount));
     }
 
@@ -49,7 +49,7 @@ public class AccountController {
             description = "Crea cuenta con validación de saldo inicial mínimo $100 MXN y generación de CLABE")
     @ApiResponse(responseCode = "201", description = "Cuenta creada")
     @PostMapping
-    public ResponseEntity<Account> create(@RequestBody Account account) {
+    public ResponseEntity<AccountResponseDto> create(@RequestBody Account account) {
         return ResponseEntity.status(201).body(bankService.create(account));
     }
 }

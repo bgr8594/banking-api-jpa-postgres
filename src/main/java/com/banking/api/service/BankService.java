@@ -2,6 +2,8 @@ package com.banking.api.service;
 
 import com.banking.api.dto.AccountResponseDto;
 import com.banking.api.entity.Account;
+import com.banking.api.exception.AccountNotFoundException;
+import com.banking.api.exception.InsufficientBalanceException;
 import com.banking.api.mapper.AccountMapper;
 import com.banking.api.repository.AccountRepository;
 import lombok.AllArgsConstructor;
@@ -24,18 +26,19 @@ public class BankService {
     }
 
     @Transactional
-    public Account deposit(String id, BigDecimal amount) {
+    public AccountResponseDto deposit(String accountNumber, BigDecimal amount) {
         if (amount.compareTo(BigDecimal.ZERO) <= 0) {
             throw new IllegalArgumentException("Monto debe ser mayor a 0");
         }
-        Account account = accountRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Cuenta no encontrada: " + id));
+        Account account = accountRepository.findByAccountNumber(accountNumber)
+                .orElseThrow(() -> new AccountNotFoundException(accountNumber));
         account.setBalance(account.getBalance().add(amount));
-        return accountRepository.save(account);
+        accountRepository.save(account);
+        return  accountMapper.toDto(account);
     }
 
     @Transactional
-    public Account withdraw(String id, BigDecimal amount) {
+    public AccountResponseDto withdraw(String id, BigDecimal amount) {
         if (amount.compareTo(BigDecimal.ZERO) <= 0) {
             throw new IllegalArgumentException("Monto debe ser mayor a 0");
         }
@@ -43,18 +46,20 @@ public class BankService {
                 .orElseThrow(() -> new RuntimeException("Cuenta no encontrada: " + id));
 
         if (account.getBalance().compareTo(amount) < 0) {
-            throw new RuntimeException("Fondos insuficientes. Saldo: " + account.getBalance());
+            throw new InsufficientBalanceException("Fondos insuficientes. Saldo: " + account.getBalance());
         }
         account.setBalance(account.getBalance().subtract(amount));
-        return accountRepository.save(account);
+        accountRepository.save(account);
+        return accountMapper.toDto(account);
     }
 
     @Transactional
-    public Account create(Account account) {
+    public AccountResponseDto create(Account account) {
         if (account.getBalance() == null || account.getBalance().compareTo(new BigDecimal("100")) < 0) {
-            throw new IllegalArgumentException("Saldo inicial mínimo $100 MXN");
+            throw new InsufficientBalanceException("Saldo inicial mínimo $100 MXN");
         }
         // Aquí se generaría CLABE, por ahora guardamos directo
-        return accountRepository.save(account);
+        accountRepository.save(account);
+        return accountMapper.toDto(account);
     }
 }
